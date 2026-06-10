@@ -9,4 +9,5 @@ public class LLMApplication {
     public static void main(String[] args) {
         SpringApplication.run(LLMApplication.class, args);
     }
-}  
+}
+// mvn -pl llm-node spring-boot:run

@@ -26,3 +26,9 @@ replay_pid*
 
 target/
 
+# Python local environment/cache
+.venv/
+__pycache__/
+*.py[cod]
+.env
+
