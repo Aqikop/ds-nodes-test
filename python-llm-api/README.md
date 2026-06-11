@@ -24,6 +24,7 @@ Set required keys in the same `cmd` window:
 ```cmd
 set GOOGLE_API_KEY=your_google_key_here
 set QDRANT_API_KEY=your_qdrant_key_here
+set LANGCHAIN_API_KEY=your_langchain_key_here
 ```
 
 Run:
