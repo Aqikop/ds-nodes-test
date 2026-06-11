@@ -5,7 +5,7 @@ It does not own food data, does not search indexes, and does not merge distribut
 results. Those responsibilities stay in the coordinator and search/index nodes.
 
 This Java module is an HTTP adapter around the Python LLM API in `python-llm-api`,
-which calls Stage 1 and Stage 3 from `test3.py`.
+which calls Stage 1 and Stage 3 from `llm.py`.
 
 ## Role In The System
 
@@ -75,7 +75,7 @@ Response body:
 ```
 
 The shared DTO for this response is `UserIntent`. Extra fields returned by
-`test3.py`, such as `reason` and `state`, are ignored by `UserIntent`.
+`llm.py`, such as `reason` and `state`, are ignored by `UserIntent`.
 
 Coordinator behavior after this response:
 
