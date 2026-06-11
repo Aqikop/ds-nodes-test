@@ -13,10 +13,10 @@ which calls Stage 1 and Stage 3 from `llm.py`.
 Client
   -> Coordinator
     -> Java LLM Node: decompose user query
-      -> Python LLM API: calls test3.py
+      -> Python LLM API: calls llm.py
     -> Search/index nodes: retrieve recipe/nutrition results
     -> Java LLM Node: format final answer from retrieved results
-      -> Python LLM API: calls test3.py
+      -> Python LLM API: calls llm.py
   -> Client
 ```
 
