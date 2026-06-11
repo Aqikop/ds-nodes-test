@@ -1,13 +1,18 @@
 package com.example.shared.model;
 
 import java.util.List;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class RecipeFilters {
     private String mealType;
     private String cuisine;
     private List<String> cookingMethod;
     private String mainProtein;
-    private List<String> dietFlags;
+    private List<String> dietFlags;    
     private Integer maxIngredients;
     private Integer maxCookTime;
     private Boolean hasPicture;

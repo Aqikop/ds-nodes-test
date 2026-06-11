@@ -1,12 +1,10 @@
 package com.example.shared.model;
 
-import java.util.List;
-
 public class RecipeQuery {
     //@Description("List of ingredient or recipe name keywords for vector search")
     private String recipeQuery;
-    private getRecipeFilters filters;
-    private StatusState state;
+    private RecipeFilters recipeFilters;
+    private StatusState state; 
 
     public RecipeQuery(){}
 
@@ -18,16 +16,17 @@ public class RecipeQuery {
     }
 
     public RecipeFilters getRecipeFilters(){
-        return filters;
+        return recipeFilters;
     }
-    public void setNutritionFilters(RecipeFilters filters){
-        this.filters = filters;
+    
+    public void setRecipeFilters(RecipeFilters recipeFilters){
+        this.recipeFilters = recipeFilters;
     }
 
     public StatusState getState(){
         return state;
     }
-    public void getState(StatusState state){
+    public void setState(StatusState state){
         this.state = state;
     }
 }

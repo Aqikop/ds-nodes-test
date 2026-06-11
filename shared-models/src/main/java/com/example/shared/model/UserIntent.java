@@ -1,14 +1,19 @@
 package com.example.shared.model;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UserIntent {
     private List<String> collections;        // ["recipes"] | ["nutrition"] | ["recipes","nutrition"] (choose which datasets to query)
     private boolean estimateNutrition;
     private String recipeQuery;              // recipe_query (parse user's input into searchable semantic)
     private String nutritionQuery;           // nutrition_query
-    private RecipeFiltersDTO recipeFilters;
-    private NutritionFiltersDTO nutritionFilters;
+    private RecipeFilters recipeFilters;
+    private NutritionFilters nutritionFilters;
 
     public UserIntent() {}
 
@@ -40,17 +45,17 @@ public class UserIntent {
         this.nutritionQuery = nutritionQuery;
     }
 
-    public RecipeFiltersDTO getRecipeFilters() {
+    public RecipeFilters getRecipeFilters() {
         return recipeFilters;
     }
-    public void setRecipeFilters(RecipeFiltersDTO recipeFilters) {
+    public void setRecipeFilters(RecipeFilters recipeFilters) {
         this.recipeFilters = recipeFilters;
     }
 
-    public NutritionFiltersDTO getNutritionFilters() {
+    public NutritionFilters getNutritionFilters() {
         return nutritionFilters;
     }
-    public void setNutritionFilters(NutritionFiltersDTO nutritionFilters) {
+    public void setNutritionFilters(NutritionFilters nutritionFilters) {
         this.nutritionFilters = nutritionFilters;
     }
 }

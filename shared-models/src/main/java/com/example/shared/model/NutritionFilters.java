@@ -1,11 +1,17 @@
 package com.example.shared.model;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class NutritionFilters{
     private String foodName;             
     private Double maxCalories;          
     private Double minProtein;          
     private Double maxFat;     
-    private Double maxCarbs;           
+    private Double maxCarbs;               
     private Double minFiber;          
     private Double maxSugar;        
     private Double maxSodium;          
