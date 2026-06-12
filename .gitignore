@@ -26,3 +26,9 @@ replay_pid*
 
 target/
 
+# Python
+.venv
+venv/
+env/
+__pycache__/
+*.py[cod]

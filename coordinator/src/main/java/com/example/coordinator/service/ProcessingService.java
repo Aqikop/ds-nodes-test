@@ -42,7 +42,9 @@ public class ProcessingService {
     public ProcessingService(RestTemplate restTemplate, RequestStorage storage) {
         this.restTemplate = restTemplate;
         this.storage = storage;
-        isLeader = false;
+        isLeader = true; // set back to false afterward
+
+        this.llmNodes.add("8081"); // for testing llm-node
 
         this.requestQueue = new LinkedBlockingQueue<>(100);
     }
@@ -59,6 +61,17 @@ public class ProcessingService {
         // if nodes is llm, add to llmNodes
         // if nodes is db, add to dbNodes
         // if this node is leader, apply to other nodes too.
+
+        // test
+        if ("llm".equalsIgnoreCase(type)) {
+            llmNodes.add(id);
+            System.out.println("LLM node registered on port: " + id);
+            return true;
+        } else if ("db".equalsIgnoreCase(type)) {
+            dbNodes.add(id);
+            System.out.println("DB node registered on port: " + id);
+            return true;
+        }
         return true;
     }
 

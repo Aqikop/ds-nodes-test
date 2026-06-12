@@ -10,3 +10,5 @@ public class LLMApplication {
         SpringApplication.run(LLMApplication.class, args);
     }
 }  
+
+// mvn -pl llm-node spring-boot:run

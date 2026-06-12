@@ -1,0 +1,12 @@
+{
+  "users": [
+    {
+      "username": "admin",
+      "password": "admin123",
+      "isAdmin": true,
+      "likes": [],
+      "allergies": [],
+      "diet": "none"
+    }
+  ]
+}
