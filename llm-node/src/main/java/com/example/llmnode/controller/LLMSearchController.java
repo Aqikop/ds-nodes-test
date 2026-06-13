@@ -1,14 +1,12 @@
 package com.example.llmnode.controller;
 
-import java.util.List;
-
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.llmnode.service.LLMService;
-
 import com.example.shared.model.LLMRequest;
 
 @RestController
@@ -20,8 +18,13 @@ public class LLMSearchController {
         this.llmService = llmService;
     }
 
-    @PostMapping
-    public String search(@RequestBody LLMRequest request) {
-        return llmService.search(request);
+    @PostMapping(value = "/decompose", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String decompose(@RequestBody LLMRequest request) {
+        return llmService.decompose(request);
+    }
+
+    @PostMapping(value = "/answer", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String answer(@RequestBody Object request) {
+        return llmService.answer(request);
     }
 }

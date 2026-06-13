@@ -1,0 +1,8 @@
+{
+  "dishes" : [ {
+    "id" : "25b6ef16-7a3a-4746-9f2d-1b7c7ac2aa23",
+    "name" : "rice",
+    "ingredients" : [ "rice", "green onion" ],
+    "cookingMethod" : "rice fried with onion"
+  } ]
+}

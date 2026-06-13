@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food AI Assistant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+    <section class="auth-view" id="authView">
+        <div class="auth-panel">
+            <div class="brand-mark">AI</div>
+            <h1>Food AI Assistant</h1>
+            <p class="muted">Sign in or create an account to save food preferences.</p>
+            <button class="secondary-button full-width-button" id="backToChatButton" type="button">Back to chat</button>
+
+            <div class="tabs" role="tablist">
+                <button class="tab-button active" id="loginTab" type="button">Login</button>
+                <button class="tab-button" id="registerTab" type="button">Register</button>
+            </div>
+
+            <form class="auth-form" id="loginForm">
+                <label>
+                    Username
+                    <input id="loginUsername" autocomplete="username" required>
+                </label>
+                <label>
+                    Password
+                    <input id="loginPassword" type="password" autocomplete="current-password" required>
+                </label>
+                <button class="primary-button" type="submit">Login</button>
+                <p class="form-message" id="loginMessage"></p>
+            </form>
+
+            <form class="auth-form hidden" id="registerForm">
+                <label>
+                    Username
+                    <input id="registerUsername" autocomplete="username" required>
+                </label>
+                <label>
+                    Password
+                    <input id="registerPassword" type="password" autocomplete="new-password" required>
+                </label>
+                <label>
+                    What do you like to eat?
+                    <textarea id="registerLikes" rows="2" placeholder="Rice, noodles, chicken..." required></textarea>
+                </label>
+                <label>
+                    Allergic to what?
+                    <textarea id="registerAllergies" rows="2" placeholder="Peanuts, shrimp, milk..."></textarea>
+                </label>
+                <label>
+                    Diet
+                    <select id="registerDiet" required>
+                        <option value="">Choose one</option>
+                        <option value="none">No specific diet</option>
+                        <option value="vegetarian">Vegetarian</option>
+                        <option value="vegan">Vegan</option>
+                        <option value="halal">Halal</option>
+                        <option value="keto">Keto</option>
+                        <option value="low-carb">Low carb</option>
+                    </select>
+                </label>
+                <button class="primary-button" type="submit">Create account</button>
+                <p class="form-message" id="registerMessage"></p>
+            </form>
+        </div>
+    </section>
+
+    <section class="admin-view hidden" id="adminView">
+        <header class="topbar">
+            <div>
+                <div class="eyebrow">Admin</div>
+                <h1>Dashboard</h1>
+            </div>
+            <div class="topbar-actions">
+                <button class="secondary-button" id="adminChatButton" type="button">Chat</button>
+                <button class="secondary-button" id="adminLogoutButton" type="button">Logout</button>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <h2>Dashboard</h2>
+            <p>Add dishes for the food database.</p>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <span>Registered users</span>
+                    <strong id="registeredUserCount">0</strong>
+                </div>
+                <div class="stat-card">
+                    <span>Admin account</span>
+                    <strong id="adminUsername">admin</strong>
+                </div>
+            </div>
+
+            <section class="admin-section">
+                <h3>Add New Dish</h3>
+                <form class="dish-form" id="dishForm">
+                    <label>
+                        Dish name
+                        <input id="dishName" placeholder="Fried rice" required>
+                    </label>
+                    <label>
+                        Ingredients
+                        <textarea id="dishIngredients" rows="3" placeholder="rice, egg, onion, soy sauce" required></textarea>
+                    </label>
+                    <label>
+                        Way to cook it
+                        <textarea id="dishCookingMethod" rows="5" placeholder="Describe the cooking steps..." required></textarea>
+                    </label>
+                    <button class="primary-button" type="submit">Save dish</button>
+                    <p class="form-message" id="dishMessage"></p>
+                </form>
+            </section>
+
+            <section class="admin-section">
+                <h3>Saved Dishes</h3>
+                <div class="dish-list" id="dishList"></div>
+            </section>
+        </main>
+    </section>
+
+    <section class="chat-view hidden" id="chatView">
+        <header class="topbar">
+            <div>
+                <div class="eyebrow">Food AI Assistant</div>
+                <h1 id="userGreeting">Welcome</h1>
+            </div>
+            <div class="topbar-actions">
+                <button class="secondary-button hidden" id="chatDashboardButton" type="button">Dashboard</button>
+                <button class="secondary-button" id="chatLoginButton" type="button">Login</button>
+                <button class="secondary-button" id="chatSignupButton" type="button">Sign up</button>
+                <button class="secondary-button" id="userLogoutButton" type="button">Logout</button>
+            </div>
+        </header>
+
+        <main class="chat-wrapper">
+            <section class="chat" id="chat">
+                <div class="message assistant-message">
+                    <div class="avatar">AI</div>
+                    <div class="bubble">
+                        Hi! What kind of meal are you looking for today?
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <form class="input-area" id="chatForm">
+            <div class="input-box">
+                <textarea
+                    id="messageInput"
+                    rows="1"
+                    placeholder="Message Food AI Assistant..."
+                ></textarea>
+
+                <button type="submit" id="sendButton" aria-label="Send message">
+                    Send
+                </button>
+            </div>
+        </form>
+    </section>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

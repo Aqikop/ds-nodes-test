@@ -1,0 +1,17 @@
+{
+  "users" : [ {
+    "username" : "admin",
+    "password" : "admin123",
+    "isAdmin" : true,
+    "likes" : [ ],
+    "allergies" : [ ],
+    "diet" : "none"
+  }, {
+    "username" : "aaa",
+    "password" : "aaa123",
+    "isAdmin" : false,
+    "likes" : [ "rice" ],
+    "allergies" : [ "peanuts" ],
+    "diet" : "none"
+  } ]
+}

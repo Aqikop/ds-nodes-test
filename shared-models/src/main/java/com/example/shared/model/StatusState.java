@@ -1,7 +1,8 @@
 package com.example.shared.model;
 
-public enum StatusState{
+public enum StatusState {
     RECEIVED,
     FAILED,
-    TIMEOUT
+    TIMEOUT,
+    SUCCESS
 }
