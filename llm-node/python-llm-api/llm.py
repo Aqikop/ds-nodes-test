@@ -55,139 +55,112 @@ NUTRITION_COL    = "nutrition"
 # STAGE 1 — DECOMPOSE & ROUTE
 # ══════════════════════════════════════════════════════════════════════════════
 
-_DECOMPOSE_PROMPT = """You are a query decomposer for a food assistant with two Qdrant collections.
+_DECOMPOSE_PROMPT = """You are a query parser for a food assistant. Your job is to parse the user's natural language query into a structured JSON that drives recipe retrieval.
 
-Your job: parse the user query into a structured JSON that drives retrieval.
-
-═══════════════════════════════════════════════════════════
-COLLECTIONS
-═══════════════════════════════════════════════════════════
-
-① recipes2.1 — dish names, ingredients, cooking instructions
-② nutrition  — per-100g macros for individual food items
+The system uses a single collection — **recipes_nutrition** — which contains recipe instructions, ingredients, and full nutritional information per dish.
 
 ═══════════════════════════════════════════════════════════
-ROUTING RULES  (choose one or both collections)
+WHAT THIS COLLECTION SUPPORTS
 ═══════════════════════════════════════════════════════════
 
-Use recipes2.1 when the user asks:
-  → what to cook, how to cook, recipe ideas, cooking method,
-    meal type, cuisine, ingredient combinations, dish names,
-    what to make with ingredients they already have
-
-Use nutrition when the user asks:
-  → calories, protein, fat, carbs, fiber, sugar, sodium,
-    macros, nutritional facts, "is X healthy", "how much protein in X"
-
-Use BOTH when the user asks:
-  → "high protein chicken recipes"    (recipe + nutrition constraint)
-  → "keto dinner ideas"               (recipe filtered by diet, validate macros)
-  → "how many calories in pasta carbonara" (recipe to identify dish + nutrition lookup)
-  → "low sodium meals I can cook"     (recipe search + sodium filter on ingredients)
+You can answer queries about:
+  → What to cook, recipe ideas, cooking methods, dish names
+  → Meal type, cuisine, ingredients on hand
+  → Calories, protein, fat, carbs, fiber, sugar, sodium per dish
+  → Diet constraints (keto, vegan, gluten-free, etc.)
+  → "Is X healthy", "high protein meals", "low sodium dinner ideas"
 
 ═══════════════════════════════════════════════════════════
 FILTER FIELDS
 ═══════════════════════════════════════════════════════════
 
-── recipes2.1 ───────────────────────────────────────────
-meal_type          : main_course | side_dish | dessert | snack | breakfast |
-                     soup_stew | salad | beverage | bread_pastry | sauce_condiment
-cuisine            : american | italian | asian | mexican | mediterranean |
-                     french | indian | japanese | thai | chinese | spanish |
-                     greek | german | british | latin_american | middle_eastern | other
-cooking_method     : baked | grilled | slow_cooker | stovetop | fried |
-                     steamed | no_cook | pressure  (list — can have multiple)
-main_protein       : chicken | beef | pork | salmon | shrimp | turkey | lamb |
-                     tofu | tuna | crab | sausage | bacon | duck | veal | other
-diet_flags         : vegetarian | vegan | gluten_free | dairy_free | nut_free
-                     (list — can have multiple)
-max_ingredients    : integer  (maps to ingredient_count lte)
-max_cook_time      : integer in minutes  (maps to estimated_cook_time_min lte)
-has_picture        : true | false  (only set true when user explicitly asks for photo)
-ingredients_list   : [string] | null
-                     List of ingredient names the user has on hand.
-                     Populate when the user says "I have X, Y, Z" or "using X and Y".
-                     Each entry should be a clean, lowercase ingredient name
-                     (e.g. ["chicken breast", "garlic", "olive oil"]).
-ingredient_units   : [string] | null
-                     Parallel array to ingredients_list — unit for each ingredient
-                     (e.g. ["grams", "cloves", "tablespoons"]).
-                     Use null for entries where no unit was specified.
-ingredient_quantities : [number] | null
-                     Parallel array to ingredients_list — numeric quantity for each
-                     ingredient (e.g. [200, 3, 2]).
-                     Use null for entries where no quantity was specified.
-                     All three arrays (ingredients_list, ingredient_units,
-                     ingredient_quantities) must have the same length when populated.
+── Recipe ───────────────────────────────────────────────
+mealType         : main_course | side_dish | dessert | snack | breakfast |
+                   soup_stew | salad | beverage | bread_pastry | sauce_condiment
+cuisine          : american | italian | asian | mexican | mediterranean |
+                   french | indian | japanese | thai | chinese | spanish |
+                   greek | german | british | latin_american | middle_eastern | other
+cookingMethod    : baked | grilled | slow_cooker | stovetop | fried |
+                   steamed | no_cook | pressure  (list — can have multiple)
+mainProtein      : chicken | beef | pork | salmon | shrimp | turkey | lamb |
+                   tofu | tuna | crab | sausage | bacon | duck | veal | other
+dietFlags        : vegetarian | vegan | gluten_free | dairy_free | nut_free
+                   (list — can have multiple)
+maxIngredients   : integer  (max number of ingredients)
+maxCookTime      : integer in minutes
+hasPicture       : boolean  (true = must have photo | false = exclude photos | null = no preference)
 
-── nutrition ────────────────────────────────────────────
-food_name          : string  (only when a specific ingredient is clearly named)
-max_calories       : number  (kcal per 100g)
-min_protein        : number  (grams per 100g)
-max_fat            : number  (grams per 100g)
-max_carbs          : number  (grams per 100g)
-min_fiber          : number  (grams per 100g)
-max_sugar          : number  (grams per 100g)
-max_sodium_g       : number  (grams per 100g — NOTE: stored in grams, not mg.
-                              Convert user's mg to g: 140mg → 0.14)
-is_high_protein    : true    (only when user says "high protein")
-is_low_carb        : true    (only when user says "low carb" or "keto")
-is_low_calorie     : true    (only when user says "low calorie" or "diet-friendly")
+── Nutrition (all values are per whole dish / per serving) ──
+maxCalories      : number  — kcal
+minProtein       : number  — grams
+maxFat           : number  — grams
+maxCarbs         : number  — grams
+minFiber         : number  — grams
+maxSugar         : number  — grams
+maxSodium        : number  — milligrams (always use mg; do NOT convert to grams)
+isHighProtein    : boolean  (true = high protein dishes only | null = no preference)
+isLowCarb        : boolean  (true = low carb / keto only | null = no preference)
+isLowCalorie     : boolean  (true = low calorie / diet-friendly only | null = no preference)
+
+── Ingredients on hand ──────────────────────────────────
+ingredientsList      : [string] | null
+                       Lowercase ingredient names the user already has.
+                       Populate when user says "I have X, Y, Z" or "using X and Y".
+ingredientUnits      : [string] | null
+                       Parallel array — unit per ingredient, null where unspecified.
+ingredientQuantities : [number] | null
+                       Parallel array — numeric amount per ingredient, null where unspecified.
+                       All three arrays must have equal length when populated.
 
 ═══════════════════════════════════════════════════════════
-QUERY REWRITING RULES
+QUERY REWRITING
 ═══════════════════════════════════════════════════════════
 
-- recipe_query   : rephrase as a dish description for vector search
-                   e.g. "something quick" → "quick easy weeknight dinner"
-                   e.g. "I have chicken, garlic, lemon" → "chicken garlic lemon dinner recipe"
-- nutrition_query: rephrase as an ingredient/food item description
-                   e.g. "how much protein in eggs" → "eggs protein content"
-- Strip filler words: "something", "maybe", "I want", "can you find", "I have"
-- Preserve food names, diet terms, cuisine words exactly
+Rewrite the user query as a clean, descriptive phrase for vector search:
+  - Remove filler: "something", "maybe", "I want", "can you find", "I have"
+  - Preserve food names, diet terms, cuisine words exactly
+  - If the user lists ingredients they have, turn them into a dish description:
+    "I have chicken, garlic, lemon" → "chicken garlic lemon dinner"
+  - If the query is purely nutritional ("how much protein in pasta carbonara"),
+    rewrite as a dish name: "pasta carbonara"
 
 ═══════════════════════════════════════════════════════════
-SPECIAL INTENTS
+SODIUM NOTE
 ═══════════════════════════════════════════════════════════
 
-estimate_nutrition: true when user wants total nutrition of a full recipe
-  → triggers the ingredient-level nutrition estimation pipeline
-  → set collections to ["recipes2.1","nutrition"] always
+maxSodium is in **milligrams**. Do not convert.
+  "low sodium" (no number given) → maxSodium: 600
+  "140mg sodium"                 → maxSodium: 140
+  "heart healthy"                → maxSodium: 600  (standard low-sodium threshold)
 
 ═══════════════════════════════════════════════════════════
 OUTPUT SCHEMA  (return ONLY valid JSON — no markdown, no explanation)
 ═══════════════════════════════════════════════════════════
 
 {{
-  "collections": ["recipes2.1"] | ["nutrition"] | ["recipes2.1", "nutrition"],
-  "estimate_nutrition": true | false,
-  "recipe_query": string | null,
-  "nutrition_query": string | null,
-  "recipe_filters": {{
-    "meal_type":              null | string,
-    "cuisine":                null | string,
-    "cooking_method":         null | [string],
-    "main_protein":           null | string,
-    "diet_flags":             null | [string],
-    "max_ingredients":        null | number,
-    "max_cook_time":          null | number,
-    "has_picture":            null | boolean,
-    "ingredients_list":       null | [string],
-    "ingredient_units":       null | [string],
-    "ingredient_quantities":  null | [number]
-  }},
-  "nutrition_filters": {{
-    "food_name":       null | string,
-    "max_calories":    null | number,
-    "min_protein":     null | number,
-    "max_fat":         null | number,
-    "max_carbs":       null | number,
-    "min_fiber":       null | number,
-    "max_sugar":       null | number,
-    "max_sodium_g":    null | number,
-    "is_high_protein": null | true,
-    "is_low_carb":     null | true,
-    "is_low_calorie":  null | true
+  "query": string,
+  "filters": {{
+    "mealType":              null | string,
+    "cuisine":               null | string,
+    "cookingMethod":         null | [string],
+    "mainProtein":           null | string,
+    "dietFlags":             null | [string],
+    "maxIngredients":        null | number,
+    "maxCookTime":           null | number,
+    "hasPicture":            null | boolean,
+    "maxCalories":           null | number,
+    "minProtein":            null | number,
+    "maxFat":                null | number,
+    "maxCarbs":              null | number,
+    "minFiber":              null | number,
+    "maxSugar":              null | number,
+    "maxSodium":             null | number,
+    "isHighProtein":         null | boolean,
+    "isLowCarb":             null | boolean,
+    "isLowCalorie":          null | boolean,
+    "ingredientsList":       null | [string],
+    "ingredientUnits":       null | [string],
+    "ingredientQuantities":  null | [number]
   }},
   "reason": string
 }}
@@ -197,22 +170,22 @@ EXAMPLES
 ═══════════════════════════════════════════════════════════
 
 User: "quick Italian pasta recipes"
-{{"collections":["recipes2.1"],"estimate_nutrition":false,"recipe_query":"quick Italian pasta dinner","nutrition_query":null,"recipe_filters":{{"meal_type":"main_course","cuisine":"italian","cooking_method":["stovetop"],"main_protein":null,"diet_flags":null,"max_ingredients":null,"max_cook_time":30,"has_picture":null,"ingredients_list":null,"ingredient_units":null,"ingredient_quantities":null}},"nutrition_filters":{{"food_name":null,"max_calories":null,"min_protein":null,"max_fat":null,"max_carbs":null,"min_fiber":null,"max_sugar":null,"max_sodium_g":null,"is_high_protein":null,"is_low_carb":null,"is_low_calorie":null}},"reason":"User wants recipe ideas — cuisine and speed filter applied."}}
-
-User: "how many calories in avocado"
-{{"collections":["nutrition"],"estimate_nutrition":false,"recipe_query":null,"nutrition_query":"avocado calorie content","recipe_filters":{{"meal_type":null,"cuisine":null,"cooking_method":null,"main_protein":null,"diet_flags":null,"max_ingredients":null,"max_cook_time":null,"has_picture":null,"ingredients_list":null,"ingredient_units":null,"ingredient_quantities":null}},"nutrition_filters":{{"food_name":"avocado","max_calories":null,"min_protein":null,"max_fat":null,"max_carbs":null,"min_fiber":null,"max_sugar":null,"max_sodium_g":null,"is_high_protein":null,"is_low_carb":null,"is_low_calorie":null}},"reason":"Pure nutrition fact lookup — no recipe needed."}}
+{{"query":"quick Italian pasta dinner","filters":{{"mealType":"main_course","cuisine":"italian","cookingMethod":["stovetop"],"mainProtein":null,"dietFlags":null,"maxIngredients":null,"maxCookTime":30,"hasPicture":null,"maxCalories":null,"minProtein":null,"maxFat":null,"maxCarbs":null,"minFiber":null,"maxSugar":null,"maxSodium":null,"isHighProtein":null,"isLowCarb":null,"isLowCalorie":null,"ingredientsList":null,"ingredientUnits":null,"ingredientQuantities":null}},"reason":"Recipe search with cuisine and time filter."}}
 
 User: "high protein low carb chicken dinner under 30 minutes"
-{{"collections":["recipes2.1","nutrition"],"estimate_nutrition":false,"recipe_query":"high protein low carb chicken dinner","nutrition_query":"chicken high protein low carb","recipe_filters":{{"meal_type":"main_course","cuisine":null,"cooking_method":null,"main_protein":"chicken","diet_flags":null,"max_ingredients":null,"max_cook_time":30,"has_picture":null,"ingredients_list":null,"ingredient_units":null,"ingredient_quantities":null}},"nutrition_filters":{{"food_name":null,"max_calories":null,"min_protein":20.0,"max_fat":null,"max_carbs":10.0,"min_fiber":null,"max_sugar":null,"max_sodium_g":null,"is_high_protein":true,"is_low_carb":true,"is_low_calorie":null}},"reason":"Recipe search with nutritional constraints — both collections needed."}}
-
-User: "what are the total calories in slow cooker chicken and dumplings"
-{{"collections":["recipes2.1","nutrition"],"estimate_nutrition":true,"recipe_query":"slow cooker chicken and dumplings","nutrition_query":"chicken dumplings ingredients nutrition","recipe_filters":{{"meal_type":"main_course","cuisine":null,"cooking_method":["slow_cooker"],"main_protein":"chicken","diet_flags":null,"max_ingredients":null,"max_cook_time":null,"has_picture":null,"ingredients_list":null,"ingredient_units":null,"ingredient_quantities":null}},"nutrition_filters":{{"food_name":null,"max_calories":null,"min_protein":null,"max_fat":null,"max_carbs":null,"min_fiber":null,"max_sugar":null,"max_sodium_g":null,"is_high_protein":null,"is_low_carb":null,"is_low_calorie":null}},"reason":"User wants calorie estimate — triggers ingredient-level nutrition pipeline."}}
+{{"query":"high protein low carb chicken dinner","filters":{{"mealType":"main_course","cuisine":null,"cookingMethod":null,"mainProtein":"chicken","dietFlags":null,"maxIngredients":null,"maxCookTime":30,"hasPicture":null,"maxCalories":null,"minProtein":20.0,"maxFat":null,"maxCarbs":10.0,"minFiber":null,"maxSugar":null,"maxSodium":null,"isHighProtein":true,"isLowCarb":true,"isLowCalorie":null,"ingredientsList":null,"ingredientUnits":null,"ingredientQuantities":null}},"reason":"Protein and carb constraints extracted; cook time filter applied."}}
 
 User: "low sodium heart healthy dinner ideas"
-{{"collections":["recipes2.1","nutrition"],"estimate_nutrition":false,"recipe_query":"heart healthy low sodium dinner","nutrition_query":"low sodium heart healthy foods","recipe_filters":{{"meal_type":"main_course","cuisine":null,"cooking_method":null,"main_protein":null,"diet_flags":null,"max_ingredients":null,"max_cook_time":null,"has_picture":null,"ingredients_list":null,"ingredient_units":null,"ingredient_quantities":null}},"nutrition_filters":{{"food_name":null,"max_calories":null,"min_protein":null,"max_fat":null,"max_carbs":null,"min_fiber":null,"max_sugar":null,"max_sodium_g":0.14,"is_high_protein":null,"is_low_carb":null,"is_low_calorie":null}},"reason":"Heart-healthy implies low sodium — max_sodium_g=0.14g (140mg)."}}
+{{"query":"heart healthy low sodium dinner","filters":{{"mealType":"main_course","cuisine":null,"cookingMethod":null,"mainProtein":null,"dietFlags":null,"maxIngredients":null,"maxCookTime":null,"hasPicture":null,"maxCalories":null,"minProtein":null,"maxFat":null,"maxCarbs":null,"minFiber":null,"maxSugar":null,"maxSodium":600,"isHighProtein":null,"isLowCarb":null,"isLowCalorie":null,"ingredientsList":null,"ingredientUnits":null,"ingredientQuantities":null}},"reason":"Heart-healthy implies low sodium threshold of 600mg."}}
+
+User: "how many calories in pasta carbonara"
+{{"query":"pasta carbonara","filters":{{"mealType":null,"cuisine":"italian","cookingMethod":null,"mainProtein":null,"dietFlags":null,"maxIngredients":null,"maxCookTime":null,"hasPicture":null,"maxCalories":null,"minProtein":null,"maxFat":null,"maxCarbs":null,"minFiber":null,"maxSugar":null,"maxSodium":null,"isHighProtein":null,"isLowCarb":null,"isLowCalorie":null,"ingredientsList":null,"ingredientUnits":null,"ingredientQuantities":null}},"reason":"Nutritional lookup — rewritten as dish name for vector search."}}
 
 User: "I have 200g chicken breast, 3 cloves of garlic, and some olive oil — what can I make?"
-{{"collections":["recipes2.1"],"estimate_nutrition":false,"recipe_query":"chicken breast garlic olive oil dinner recipe","nutrition_query":null,"recipe_filters":{{"meal_type":null,"cuisine":null,"cooking_method":null,"main_protein":"chicken","diet_flags":null,"max_ingredients":null,"max_cook_time":null,"has_picture":null,"ingredients_list":["chicken breast","garlic","olive oil"],"ingredient_units":["grams","cloves",null],"ingredient_quantities":[200,3,null]}},"nutrition_filters":{{"food_name":null,"max_calories":null,"min_protein":null,"max_fat":null,"max_carbs":null,"min_fiber":null,"max_sugar":null,"max_sodium_g":null,"is_high_protein":null,"is_low_carb":null,"is_low_calorie":null}},"reason":"User wants recipes using specific on-hand ingredients with quantities — ingredients_list populated with parallel unit and quantity arrays."}}
+{{"query":"chicken breast garlic olive oil dinner","filters":{{"mealType":null,"cuisine":null,"cookingMethod":null,"mainProtein":"chicken","dietFlags":null,"maxIngredients":null,"maxCookTime":null,"hasPicture":null,"maxCalories":null,"minProtein":null,"maxFat":null,"maxCarbs":null,"minFiber":null,"maxSugar":null,"maxSodium":null,"isHighProtein":null,"isLowCarb":null,"isLowCalorie":null,"ingredientsList":["chicken breast","garlic","olive oil"],"ingredientUnits":["grams","cloves",null],"ingredientQuantities":[200,3,null]}},"reason":"Ingredients-on-hand query; parallel arrays populated with available quantities."}}
+
+User: "vegan gluten-free breakfast with pictures"
+{{"query":"vegan gluten-free breakfast","filters":{{"mealType":"breakfast","cuisine":null,"cookingMethod":null,"mainProtein":"tofu","dietFlags":["vegan","gluten_free"],"maxIngredients":null,"maxCookTime":null,"hasPicture":true,"maxCalories":null,"minProtein":null,"maxFat":null,"maxCarbs":null,"minFiber":null,"maxSugar":null,"maxSodium":null,"isHighProtein":null,"isLowCarb":null,"isLowCalorie":null,"ingredientsList":null,"ingredientUnits":null,"ingredientQuantities":null}},"reason":"Diet flags and meal type set; hasPicture true because user explicitly asked."}}
 
 Now parse this query:
 User: "{user_query}"
