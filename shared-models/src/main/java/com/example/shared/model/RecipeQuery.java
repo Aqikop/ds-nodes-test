@@ -4,18 +4,30 @@ import java.util.List;
 
 public class RecipeQuery {
     //@Description("List of ingredient or recipe name keywords for vector search")
-    public String search_type;
-    public List<String> keywords;
-    public RecipeFilter filters;
+    private String recipeQuery;
+    private getRecipeFilters filters;
+    private StatusState state;
 
-    public RecipeQuery() {}
+    public RecipeQuery(){}
 
-    public String getSearch_type() {return search_type;}
-    public void setSearch_type(String search_type) {this.search_type = search_type;}
+    public String getRecipeQuery(){
+        return recipeQuery;
+    }
+    public void setRecipeQuery(String query){
+        this.recipeQuery = query;
+    }
 
-    public List<String> getKeywords() {return keywords;}
-    public void setKeywords(List<String> keywords) {this.keywords = keywords;}
+    public RecipeFilters getRecipeFilters(){
+        return filters;
+    }
+    public void setNutritionFilters(RecipeFilters filters){
+        this.filters = filters;
+    }
 
-    public RecipeFilter getFilters() {return filters;}
-    public void setFilters(RecipeFilter filters) {this.filters = filters;}
+    public StatusState getState(){
+        return state;
+    }
+    public void getState(StatusState state){
+        this.state = state;
+    }
 }
