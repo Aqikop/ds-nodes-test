@@ -7,9 +7,12 @@ const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 const loginMessage = document.getElementById("loginMessage");
 const registerMessage = document.getElementById("registerMessage");
+const backToChatButton = document.getElementById("backToChatButton");
 const adminChatButton = document.getElementById("adminChatButton");
 const adminLogoutButton = document.getElementById("adminLogoutButton");
 const chatDashboardButton = document.getElementById("chatDashboardButton");
+const chatLoginButton = document.getElementById("chatLoginButton");
+const chatSignupButton = document.getElementById("chatSignupButton");
 const userLogoutButton = document.getElementById("userLogoutButton");
 const registeredUserCount = document.getElementById("registeredUserCount");
 const adminUsername = document.getElementById("adminUsername");
@@ -40,18 +43,21 @@ async function initializeApp() {
     if (sessionUser) {
         signIn(sessionUser);
     } else {
-        showAuth();
+        showChat(null);
     }
 }
 
 function bindEvents() {
     loginTab.addEventListener("click", () => showAuthTab("login"));
     registerTab.addEventListener("click", () => showAuthTab("register"));
+    backToChatButton.addEventListener("click", () => showChat(currentUser));
     loginForm.addEventListener("submit", handleLogin);
     registerForm.addEventListener("submit", handleRegister);
     dishForm.addEventListener("submit", handleDishSubmit);
     adminChatButton.addEventListener("click", () => showChat(currentUser));
     chatDashboardButton.addEventListener("click", () => showAdminDashboard(currentUser));
+    chatLoginButton.addEventListener("click", () => showAuth("login"));
+    chatSignupButton.addEventListener("click", () => showAuth("register"));
     adminLogoutButton.addEventListener("click", logout);
     userLogoutButton.addEventListener("click", logout);
     chatForm.addEventListener("submit", handleChatSubmit);
@@ -165,25 +171,20 @@ async function parseJsonResponse(response) {
 function signIn(user) {
     currentUser = user;
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
-
-    if (user.isAdmin) {
-        showAdminDashboard(user);
-    } else {
-        showChat(user);
-    }
+    showChat(user);
 }
 
 function logout() {
     currentUser = null;
     localStorage.removeItem(SESSION_STORAGE_KEY);
-    showAuth();
+    showChat(null);
 }
 
-function showAuth() {
+function showAuth(tab = "login") {
     authView.classList.remove("hidden");
     adminView.classList.add("hidden");
     chatView.classList.add("hidden");
-    showAuthTab("login");
+    showAuthTab(tab);
 }
 
 function showAuthTab(tab) {
@@ -198,6 +199,11 @@ function showAuthTab(tab) {
 }
 
 async function showAdminDashboard(user) {
+    if (!user || !user.isAdmin) {
+        showChat(user);
+        return;
+    }
+
     authView.classList.add("hidden");
     adminView.classList.remove("hidden");
     chatView.classList.add("hidden");
@@ -288,8 +294,11 @@ function showChat(user) {
     adminView.classList.add("hidden");
     chatView.classList.remove("hidden");
 
-    userGreeting.textContent = `Welcome, ${user.username}`;
-    chatDashboardButton.classList.toggle("hidden", !user.isAdmin);
+    userGreeting.textContent = user ? `Welcome, ${user.username}` : "Food AI Assistant";
+    chatDashboardButton.classList.toggle("hidden", !user?.isAdmin);
+    chatLoginButton.classList.toggle("hidden", Boolean(user));
+    chatSignupButton.classList.toggle("hidden", Boolean(user));
+    userLogoutButton.classList.toggle("hidden", !user);
 }
 
 function formatList(value) {
@@ -440,7 +449,7 @@ async function handleChatSubmit(event) {
 
     const messageText = messageInput.value.trim();
 
-    if (!messageText || !currentUser) {
+    if (!messageText) {
         return;
     }
 

@@ -107,6 +107,11 @@ button {
   border-color: var(--green);
 }
 
+.full-width-button {
+  width: 100%;
+  margin-top: 18px;
+}
+
 .auth-form {
   display: grid;
   gap: 14px;
@@ -177,6 +182,8 @@ textarea {
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .dashboard {
