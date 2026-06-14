@@ -28,6 +28,7 @@ target/
 
 # Python
 .venv
+.env
 venv/
 env/
 __pycache__/

@@ -196,6 +196,7 @@ def _to_grams(quantity: Optional[float], unit: Optional[str], name: str) -> Opti
 
     # 4. Last resort: assume 1 unit ≈ 100g (so ratio = quantity)
     # This keeps the result in the right ballpark for unnamed items
+    #TODO: return None, avoid exponential in total value
     return quantity * 100.0
 
 
