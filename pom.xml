@@ -19,6 +19,7 @@
     <modules>
         <module>shared-models</module>
         <module>llm-node</module>
+        <module>etl-node</module>
         <module>coordinator</module>
     </modules>
 
