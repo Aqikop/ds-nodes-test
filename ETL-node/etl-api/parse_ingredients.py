@@ -26,6 +26,7 @@ from typing import Optional
 # 1. UNIT TABLES
 # ══════════════════════════════════════════════════════════════════════════════
 
+# TODO: remove "large", "medium", "small", "whole", "extra-large", "extra large", let COUNTABLE_GRAMS fallback handles
 UNIT_TO_GRAMS: dict[str, Optional[float]] = {
     # metric weight
     "gram":          1.0,
