@@ -149,7 +149,6 @@ def _upload_chunks(
 
 def ingest(
     input_path:  str,
-    dry_run:    bool = False,
     batch_size:  int = BATCH_SIZE,
     api_key:     str = QDRANT_API_KEY,
     qdrant_url:  str = QDRANT_URL,
@@ -198,16 +197,8 @@ def ingest(
         batch.append(chunk)
 
         if len(batch) >= batch_size:
-            if dry_run:
-                # print what would be uploaded, skip actual upsert
-                print(f"[DRY RUN] Would upload {len(batch)} records")
-                for c in batch[:2]:   # show first 2 as sample
-                    print(f"  title: {c['metadata']['title']}")
-                    print(f"  nutrition: {c['metadata'].get('nutrition_total')}")
-                    print(f"  coverage: {c['metadata'].get('nutrition_coverage')}")
-            else:
-                _upload_chunks(batch, model, client)
-                written += len(batch)
+            _upload_chunks(batch, model, client)
+            written += len(batch)
             batch.clear()
             print(f"  Uploaded {written}/{total} ...", end="\r")
 
