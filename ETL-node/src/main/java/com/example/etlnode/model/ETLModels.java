@@ -16,6 +16,7 @@ public class ETLModels {
 
     public static class IngestRequest {
         public List<Dish> dishes;
+        public boolean dryRun = false;
     }
 
     // ── Generic response wrapper ───────────────────────────────────────────────

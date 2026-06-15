@@ -39,6 +39,7 @@ class Dish(BaseModel):
 
 class DishesPayload(BaseModel):
     dishes: list[Dish]
+    dry_run: bool = False
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -106,16 +107,17 @@ def ingest_from_body(payload: DishesPayload, background_tasks: BackgroundTasks):
     json.dump(recipe_dict, tmp, ensure_ascii=False)
     tmp.close()
 
-    def _run(path: str):
+    def _run(path: str, dry_run):
         try:
-            _get_ingest()(path)
+            _get_ingest()(path, dry_run=dry_run)
         finally:
             os.unlink(path)
 
-    background_tasks.add_task(_run, tmp.name)
+    background_tasks.add_task(_run, tmp.name, payload.dry_run)
 
     return {
         "status":  "accepted",
+        "dry_run":  payload.dry_run,
         "queued":  len(payload.dishes),
         "ids":     list(recipe_dict.keys()),
         "message": "Recipes are being processed and uploaded to Qdrant.",
@@ -174,3 +176,6 @@ async def ingest_from_file(
         "ids":      list(recipe_dict.keys()),
         "message":  "Recipes are being processed and uploaded to Qdrant.",
     }
+    
+    
+# python -m uvicorn app:app --host 127.0.0.1 --port 6000 
